@@ -1,6 +1,5 @@
-import "@testing-library/jest-dom";
+import { describe, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-
 import Sidepane from "./Sidepane";
 
 import type { Translation } from "../../domain/types/Translation";
@@ -21,7 +20,9 @@ describe("Sidepane", () => {
 
   it("renders history header", () => {
     render(<Sidepane translations={[]} />);
-    expect(screen.getByText(/History/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /history/i })
+    ).toBeInTheDocument();
   });
 
   it("shows empty state when no translations", () => {
@@ -60,15 +61,11 @@ describe("Sidepane", () => {
 
     render(<Sidepane translations={translations} />);
 
-    // Check original text
     expect(screen.getByText("Hello world")).toBeInTheDocument();
-    // Check translated text
     expect(
       screen.getByText("Strong with you, the Force is")
     ).toBeInTheDocument();
-    // Check engine badge
-    expect(screen.getByText("YODA")).toBeInTheDocument();
-    // Check labels
+    expect(screen.getByText("yoda")).toBeInTheDocument();
     expect(screen.getByText(/Original:/i)).toBeInTheDocument();
     expect(screen.getByText(/Translated:/i)).toBeInTheDocument();
   });
@@ -81,7 +78,6 @@ describe("Sidepane", () => {
 
     render(<Sidepane translations={translations} />);
 
-    // The exact format will depend on locale, but should contain month and time
     expect(screen.getByText(/Jan 15/)).toBeInTheDocument();
   });
 
@@ -93,8 +89,8 @@ describe("Sidepane", () => {
 
     render(<Sidepane translations={translations} />);
 
-    expect(screen.getByText("PIRATE")).toBeInTheDocument();
-    expect(screen.getByText("YODA")).toBeInTheDocument();
+    expect(screen.getByText("pirate")).toBeInTheDocument();
+    expect(screen.getByText("yoda")).toBeInTheDocument();
     expect(screen.getByText("2 translations")).toBeInTheDocument();
   });
 

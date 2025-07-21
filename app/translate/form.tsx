@@ -1,7 +1,7 @@
 import { ChangeEvent, FormEvent, useState } from "react";
-import Button from "../../view/components/Button";
-import Input from "../../view/components/Input";
 import Select from "../../view/components/Select";
+import Input from "../../view/components/Input";
+import Button from "../../view/components/Button";
 
 export function TranslateForm() {
   const [engine, setEngine] = useState("yoda");
