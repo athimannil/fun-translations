@@ -41,15 +41,16 @@ class FunTranslationService implements IFunTranslationService {
 
   async getTranslation(text: string, engine: Engine) {
     const normalizedText = normalizeText(text);
-    const cacheKey = `${engine}:${normalizedText}`;
-    const cached = cacheService.get<Translation>(cacheKey);
+    const translations = cacheService.get<Translation[]>(engine) || [];
+    const cached = translations.find((t) => t.originalText === normalizedText);
+
     if (cached) {
       return cached;
     }
     const repo = this.getRepo(engine);
     const response = await repo.getTranslation(normalizedText);
     const translation = fromDto(response);
-    cacheService.set(cacheKey, translation);
+    cacheService.addToEngineArray<Translation>(engine, translation);
     return translation;
   }
 }

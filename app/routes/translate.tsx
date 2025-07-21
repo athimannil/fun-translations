@@ -1,9 +1,10 @@
-import React from "react";
+import { useState, useEffect } from "react";
+import { useActionData } from "react-router";
 import { TranslateForm } from "../translate/form";
 import Content from "../../view/components/Content";
 import Sidepane from "../../view/components/Sidepane";
 import { funTranslationService } from "io/service/FunTranslationService";
-import { useActionData } from "react-router";
+import cacheService from "io/service/CacheService";
 import type { Route } from "./+types/translate";
 import type { Translation } from "../../domain/types/Translation";
 import { Engine } from "domain/types/Engine";
@@ -31,33 +32,22 @@ export const action = async ({ request }: Route.ActionArgs) => {
     );
     return { success: true, translation };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: (error as Error).message };
   }
 };
 
-const MOCK_TRANSLATIONS: Translation[] = [
-  {
-    originalText: "Hello, how are you today?",
-    translatedText: "Strong with the Force you are today, hmm?",
-    engine: "yoda",
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-  },
-  {
-    originalText: "I need to finish this project",
-    translatedText: "Finish this project, you must. No other choice there is.",
-    engine: "yoda",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-  },
-  {
-    originalText: "The weather is beautiful",
-    translatedText:
-      "Beautiful the weather is, yes. Peaceful it makes one feel.",
-    engine: "yoda",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-  },
-];
+const engines: Engine[] = ["yoda", "pirate"];
 
 export default function Translate() {
+  const [allTranslations, setAllTranslations] = useState<Translation[]>([]);
+
+  useEffect(() => {
+    const all = engines.flatMap(
+      (engine) => cacheService.get<Translation[]>(engine) || []
+    );
+    setAllTranslations(all);
+  }, []);
+
   const actionData = useActionData<typeof action>();
 
   const handleTranslationSubmit = async (data: {
@@ -66,14 +56,41 @@ export default function Translate() {
   }) => {
     const { text, engine } = data;
     const result = await funTranslationService.getTranslation(text, engine);
-    console.log("---------- Translation Result ----------");
-    console.log(result);
-    console.log(text, engine);
+
+    const all = engines.flatMap(
+      (engine) => cacheService.get<Translation[]>(engine) || []
+    );
+    setAllTranslations(all);
+  };
+
+  const handleDeleteTranslationHistory = (
+    engine: Engine,
+    originalText: string
+  ) => {
+    console.log(engine);
+    console.log(originalText);
+    console.log(allTranslations);
+    cacheService.removeFromEngineArray<Translation>(engine, originalText);
+    setAllTranslations((prev) =>
+      prev.filter(
+        (item) =>
+          !(item.engine === engine && item.originalText === originalText)
+      )
+    );
+  };
+
+  const handleDeleteAllTranslationsHistory = () => {
+    cacheService.removeAllEngines(engines);
+    setAllTranslations([]);
   };
 
   return (
-    <main className="flex h-full py-3">
-      <Sidepane translations={MOCK_TRANSLATIONS} />
+    <main className="flex h-full">
+      <Sidepane
+        onDelete={handleDeleteTranslationHistory}
+        onDeleteAll={handleDeleteAllTranslationsHistory}
+        translations={allTranslations}
+      />
       <Content>
         <div className="text-center py-8">
           <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-3">
