@@ -1,8 +1,8 @@
 import type { Route } from "./+types/translate";
 import { TranslateForm } from "../translate/form";
-import Content from "view/components/Content";
-import Sidepane from "view/components/Sidepane";
-import { createDefaultFunTranslationService } from "io/service/FunTranslationService";
+import Content from "../../view/components/Content";
+import Sidepane from "../../view/components/Sidepane";
+import { createDefaultFunTranslationService } from "../../io/service/FunTranslationService";
 import { useActionData } from "react-router";
 
 export function meta({}: Route.MetaArgs) {

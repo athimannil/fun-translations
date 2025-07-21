@@ -1,5 +1,5 @@
-import Button from "view/components/Button";
-import Input from "view/components/Input";
+import Button from "../../view/components/Button";
+import Input from "../../view/components/Input";
 
 export function TranslateForm() {
   return (
