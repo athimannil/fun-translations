@@ -1,8 +1,21 @@
+import { ChangeEvent, FormEvent, useState } from "react";
 import Button from "../../view/components/Button";
 import Input from "../../view/components/Input";
+import Select from "../../view/components/Select";
 
 export function TranslateForm() {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [engine, setEngine] = useState("yoda");
+  const [text, setText] = useState("");
+
+  const handleEngineChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setEngine(e.target.value);
+    console.log("Engine changed:", e.target.value);
+  };
+  const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+    console.log("Text changed:", e.target.value);
+  };
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Form submitted");
   };
@@ -18,15 +31,17 @@ export function TranslateForm() {
             >
               Translation Engine
             </label>
-            <select
+            <Select
               id="engine"
               name="engine"
+              value={engine}
+              onChange={handleEngineChange}
               className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             >
               <option value="yoda">Yoda Speak</option>
               <option value="pirate">Pirate Speak</option>
               <option value="shakespeare">Shakespearean English</option>
-            </select>
+            </Select>
           </div>
         </div>
         <div className="space-y-2">
@@ -39,9 +54,8 @@ export function TranslateForm() {
           <Input
             id="text"
             name="text"
-            autoComplete="off"
-            spellCheck="false"
-            required
+            value={text}
+            onChange={handleTextChange}
             placeholder="Enter the text you want to translate here..."
             className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500"
           />
@@ -50,6 +64,7 @@ export function TranslateForm() {
         <div className="flex justify-center pt-4">
           <Button
             type="submit"
+            disabled={!text}
             className="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:focus:ring-gray-300"
           >
             Translate

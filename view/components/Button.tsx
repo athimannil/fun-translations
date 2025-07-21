@@ -1,10 +1,15 @@
+import { ButtonHTMLAttributes } from "react";
 import clsx from "clsx";
 
-export default function Button({ className, ...props }) {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
+}
+
+export default function Button({ className, ...props }: ButtonProps) {
   return (
     <button
       className={clsx(
-        "p-3 border border-amber-400 bg-amber-50  rounded-md",
+        "p-3 border select-none cursor-pointer rounded-md",
         className
       )}
       {...props}

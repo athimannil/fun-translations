@@ -10,7 +10,12 @@ export default function Input({ onChange, className, ...props }: InputProps) {
     <textarea
       {...props}
       rows={4}
+      autoFocus
+      required
+      spellCheck="false"
+      autoComplete="off"
       onChange={onChange}
+      placeholder="Enter the text you want to translate here..."
       className={clsx("p-3 border border-gray-400 rounded-md", className)}
     />
   );
