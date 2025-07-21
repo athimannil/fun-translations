@@ -1,6 +1,8 @@
 import type { Engine } from "./Engine";
 
 export interface Translation {
-  text: string;
+  originalText: string;
+  translatedText: string;
   engine: Engine;
+  timestamp: Date;
 }
