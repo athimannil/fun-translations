@@ -24,12 +24,12 @@ export default function Translate() {
   const translation = useActionData();
 
   return (
-    <div className="flex h-full py-3">
-      <Sidepane>It would be nice to see past translations here.</Sidepane>
+    <main className="flex h-full py-3">
+      <Sidepane />
       <Content>
         <TranslateForm />
         {JSON.stringify(translation)}
       </Content>
-    </div>
+    </main>
   );
 }
