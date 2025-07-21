@@ -2,10 +2,11 @@ import React from "react";
 import { TranslateForm } from "../translate/form";
 import Content from "../../view/components/Content";
 import Sidepane from "../../view/components/Sidepane";
-import { createDefaultFunTranslationService } from "../../io/service/FunTranslationService";
+import { funTranslationService } from "io/service/FunTranslationService";
 import { useActionData } from "react-router";
 import type { Route } from "./+types/translate";
 import type { Translation } from "../../domain/types/Translation";
+import { Engine } from "domain/types/Engine";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -14,12 +15,24 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export const action = async ({ request }) => {
-  const translationService = createDefaultFunTranslationService();
-  const translation = await translationService.getTranslation("placeholder");
-  // should I do something with that request?
+export const action = async ({ request }: Route.ActionArgs) => {
+  const formData = await request.formData();
+  const text = formData.get("text") as string;
+  const engine = formData.get("engine") as Engine;
 
-  return translation;
+  if (!text || !engine) {
+    throw new Error("Missing text or engine");
+  }
+
+  try {
+    const translation = await funTranslationService.getTranslation(
+      text,
+      engine
+    );
+    return { success: true, translation };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 };
 
 const MOCK_TRANSLATIONS: Translation[] = [
@@ -45,7 +58,18 @@ const MOCK_TRANSLATIONS: Translation[] = [
 ];
 
 export default function Translate() {
-  const translation = useActionData();
+  const actionData = useActionData<typeof action>();
+
+  const handleTranslationSubmit = async (data: {
+    text: string;
+    engine: Engine;
+  }) => {
+    const { text, engine } = data;
+    const result = await funTranslationService.getTranslation(text, engine);
+    console.log("---------- Translation Result ----------");
+    console.log(result);
+    console.log(text, engine);
+  };
 
   return (
     <main className="flex h-full py-3">
@@ -59,8 +83,13 @@ export default function Translate() {
             Transform your text with different translation engines
           </p>
         </div>
-        <TranslateForm />
-        {JSON.stringify(translation)}
+        <TranslateForm onTranslation={handleTranslationSubmit} />
+        {actionData?.translation && (
+          <div className="mt-4 p-4 bg-green-50 rounded-lg">
+            <h3>Translation Result:</h3>
+            <p>{actionData.translation.translatedText}</p>
+          </div>
+        )}
       </Content>
     </main>
   );

@@ -1,30 +1,59 @@
 import type { Translation } from "domain/types/Translation";
-import YodaTranslationRepo from "../repo/YodaTranslationRepo";
+import type { Engine } from "domain/types/Engine";
+import { fromDto } from "../codec/fun-translation";
+import YodaTranslationRepo, {
+  type YodaFunTranslationApiResponse,
+} from "../repo/YodaTranslationRepo";
+import cacheService from "./CacheService";
+import { normalizeText } from "domain/normalizeText";
 
-interface FunTranslationService {
-  getTranslation(text: string): Translation;
+type AnyTranslationApiResponse = YodaFunTranslationApiResponse;
+
+// Base interface for translation repositories
+interface TranslationRepo<T> {
+  getTranslation(text: string): Promise<T>;
 }
 
-class DefaultFunTranslationService implements FunTranslationService {
-  repo: YodaTranslationRepo;
-
-  constructor(repo: YodaTranslationRepo) {
-    this.repo = repo;
-  }
-
-  async getTranslation(text: string) {
-    const response = await this.repo.getTranslation(text);
-    const payload = await response.json();
-
-    return payload as Translation;
-  }
-}
-
-const createDefaultFunTranslationService = () => {
-  const yodaRepo = new YodaTranslationRepo();
-  const service = new DefaultFunTranslationService(yodaRepo);
-
-  return service;
+// Map of engine names to repository constructors
+const engineRepoMap: Record<
+  Engine,
+  () => TranslationRepo<AnyTranslationApiResponse>
+> = {
+  yoda: () => new YodaTranslationRepo(),
 };
 
-export { DefaultFunTranslationService, createDefaultFunTranslationService };
+interface IFunTranslationService {
+  getTranslation(text: string, engine: Engine): Promise<Translation>;
+}
+
+class FunTranslationService implements IFunTranslationService {
+  repos: Partial<Record<Engine, TranslationRepo<AnyTranslationApiResponse>>> =
+    {};
+
+  getRepo(engine: Engine): TranslationRepo<AnyTranslationApiResponse> {
+    if (!this.repos[engine]) {
+      const repoFactory = engineRepoMap[engine];
+      if (!repoFactory) throw new Error(`No repo for engine: ${engine}`);
+      this.repos[engine] = repoFactory();
+    }
+    return this.repos[engine]!;
+  }
+
+  async getTranslation(text: string, engine: Engine) {
+    const normalizedText = normalizeText(text);
+    const cacheKey = `${engine}:${normalizedText}`;
+    const cached = cacheService.get<Translation>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+    const repo = this.getRepo(engine);
+    const response = await repo.getTranslation(normalizedText);
+    const translation = fromDto(response);
+    cacheService.set(cacheKey, translation);
+    return translation;
+  }
+}
+
+const funTranslationService = new FunTranslationService();
+
+export { funTranslationService };

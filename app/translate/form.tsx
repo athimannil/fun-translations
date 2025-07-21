@@ -1,9 +1,14 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import Select from "../../view/components/Select";
 import Input from "../../view/components/Input";
 import Button from "../../view/components/Button";
+import { Engine } from "domain/types/Engine";
 
-export function TranslateForm() {
+interface TranslateFormProps {
+  onTranslation: (data: { text: string; engine: Engine }) => void;
+}
+
+export function TranslateForm({ onTranslation }: TranslateFormProps) {
   const [engine, setEngine] = useState("yoda");
   const [text, setText] = useState("");
 
@@ -18,6 +23,7 @@ export function TranslateForm() {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Form submitted");
+    onTranslation({ text, engine: engine as Engine });
   };
 
   return (
@@ -64,7 +70,7 @@ export function TranslateForm() {
         <div className="flex justify-center pt-4">
           <Button
             type="submit"
-            disabled={!text}
+            // disabled={!text}
             className="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:focus:ring-gray-300"
           >
             Translate

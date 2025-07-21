@@ -1,21 +1,36 @@
+export interface YodaFunTranslationApiResponse {
+  success: {
+    total: number;
+  };
+  contents: {
+    translated: string;
+    text: string;
+    translation: "yoda";
+  };
+}
+
 class YodaTranslationRepo {
-  async getTranslation(text: string) {
-    // const response = await fetch(
-    //   "https://api.funtranslations.com/translate/yoda.json",
-    //   { method: "POST", body: JSON.stringify({ text }) }
-    // );
-    //
-    // return response;
+  async getTranslation(text: string): Promise<YodaFunTranslationApiResponse> {
+    if (import.meta.env.VITE_APP_USE_MOCK === "true") {
+      return (await import(
+        "../mocks/api.yoda.json"
+      )) as YodaFunTranslationApiResponse;
+    }
 
-    const json = await import(
-      "../mocks/api.funtranslations.com_translate_yoda.json.json"
+    const response = await fetch(
+      "https://api.funtranslations.com/translate/yoda.json",
+      {
+        method: "POST",
+        body: JSON.stringify({ text }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
-
-    return Promise.resolve({
-      json() {
-        return json;
-      },
-    });
+    console.log("=================================");
+    console.log(response);
+    console.log(`${response.status} ${response.statusText}`);
+    return response.json() as Promise<YodaFunTranslationApiResponse>;
   }
 }
 
