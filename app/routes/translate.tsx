@@ -51,6 +51,14 @@ export default function Translate() {
     <main className="flex h-full py-3">
       <Sidepane translations={MOCK_TRANSLATIONS} />
       <Content>
+        <div className="text-center py-8">
+          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+            Fun Translations
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Transform your text with different translation engines
+          </p>
+        </div>
         <TranslateForm />
         {JSON.stringify(translation)}
       </Content>

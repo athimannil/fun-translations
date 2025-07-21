@@ -1,7 +1,13 @@
-export default function Content({ children }) {
+import type { ReactNode } from "react";
+
+interface ContentProps {
+  children: ReactNode;
+}
+
+export default function Content({ children }: ContentProps) {
   return (
-    <div className="bg-zinc-50 max-w-xl  p-6 border border-zinc-100 w-full h-full rounded-lg">
-      {children}
-    </div>
+    <section className="flex-1 bg-white dark:bg-gray-900 overflow-y-auto">
+      <div className="max-w-4xl mx-auto p-8">{children}</div>
+    </section>
   );
 }
