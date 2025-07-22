@@ -1,5 +1,5 @@
-import type { Translation } from "domain/types/Translation";
 import type { Engine } from "domain/types/Engine";
+import type { Translation } from "../../domain/types/Translation";
 import { fromDto } from "../codec/fun-translation";
 import YodaTranslationRepo, {
   type YodaFunTranslationApiResponse,
@@ -8,7 +8,7 @@ import PirateTranslationRepo, {
   type PirateFunTranslationApiResponse,
 } from "../repo/PirateTranslationRepo";
 import cacheService from "./CacheService";
-import { normalizeText } from "domain/normalizeText";
+import { normalizeText } from "../../domain/normalizeText";
 
 type AnyTranslationApiResponse =
   | YodaFunTranslationApiResponse
@@ -54,19 +54,14 @@ class FunTranslationService implements IFunTranslationService {
       );
 
       if (cached) {
-        console.log("Using cached translation");
         return cached;
       }
     }
 
-    console.log("Fetching new translation for:", normalizedText);
     const repo = this.getRepo(engine);
     const response = await repo.getTranslation(normalizedText);
     const translation = fromDto(response);
 
-    console.log("Created translation:", translation);
-
-    // Always return the translation, caching will happen on client-side
     return translation;
   }
 }

@@ -3,7 +3,7 @@ import { Form } from "react-router";
 import Select from "../../view/components/Select";
 import Input from "../../view/components/Input";
 import Button from "../../view/components/Button";
-import { Engine } from "domain/types/Engine";
+import type { Engine } from "domain/types/Engine";
 
 interface TranslateFormProps {
   onTranslation?: (data: { text: string; engine: Engine }) => void;
@@ -22,7 +22,7 @@ export function TranslateForm({ onTranslation }: TranslateFormProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-4">
       <Form method="post" className="space-y-6">
         <div className="flex justify-end">
           <div className="w-64">

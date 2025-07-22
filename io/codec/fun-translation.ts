@@ -13,9 +13,9 @@ interface FunTranslationService {
 
 export const fromDto = (response: FunTranslationService): Translation => {
   return {
-    originalText: response.contents.text, // Fixed: was 'text'
-    translatedText: response.contents.translated, // Fixed: was 'translated'
+    originalText: response.contents.text,
+    translatedText: response.contents.translated,
     engine: response.contents.translation,
-    timestamp: new Date(), // Add timestamp
+    timestamp: new Date(),
   };
 };

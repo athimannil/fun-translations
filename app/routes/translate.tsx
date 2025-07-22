@@ -46,28 +46,22 @@ export default function Translate() {
   const [allTranslations, setAllTranslations] = useState<Translation[]>([]);
   const actionData = useActionData<typeof action>();
 
-  // Function to load translations from localStorage
   const loadTranslations = () => {
     if (typeof window === "undefined") return;
 
-    console.log("Loading translations from localStorage...");
     const all = engines.flatMap((engine) => {
       const engineTranslations = cacheService.get<Translation[]>(engine) || [];
-      console.log(`${engine} translations:`, engineTranslations);
       return engineTranslations;
     });
 
-    // Sort by timestamp (newest first)
     all.sort(
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
-    console.log("All loaded translations:", all);
     setAllTranslations(all);
   };
 
-  // Load translations on mount
   useEffect(() => {
     loadTranslations();
   }, []);
@@ -75,8 +69,6 @@ export default function Translate() {
   // Handle successful translation - save to localStorage and reload
   useEffect(() => {
     if (actionData?.success && actionData.translation) {
-      console.log("New translation received:", actionData.translation);
-      // Save to localStorage
       cacheService.addToEngineArray<Translation>(
         actionData.translation.engine,
         actionData.translation
