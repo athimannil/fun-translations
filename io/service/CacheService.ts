@@ -5,9 +5,22 @@ class CacheService {
     if (!item) return null;
     try {
       const parsed = JSON.parse(item);
+
+      // Handle arrays of translations
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => {
+          if (item && typeof item === "object" && item.timestamp) {
+            item.timestamp = new Date(item.timestamp);
+          }
+          return item;
+        }) as T;
+      }
+
+      // Handle single objects with timestamp
       if (parsed && typeof parsed === "object" && parsed.timestamp) {
         parsed.timestamp = new Date(parsed.timestamp);
       }
+
       return parsed as T;
     } catch (error) {
       console.error("Failed to parse cached item:", error);

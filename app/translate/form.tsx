@@ -1,34 +1,29 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
+import { Form } from "react-router";
 import Select from "../../view/components/Select";
 import Input from "../../view/components/Input";
 import Button from "../../view/components/Button";
 import { Engine } from "domain/types/Engine";
 
 interface TranslateFormProps {
-  onTranslation: (data: { text: string; engine: Engine }) => void;
+  onTranslation?: (data: { text: string; engine: Engine }) => void;
 }
 
 export function TranslateForm({ onTranslation }: TranslateFormProps) {
-  const [engine, setEngine] = useState("yoda");
+  const [engine, setEngine] = useState<Engine>("yoda");
   const [text, setText] = useState("");
 
   const handleEngineChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setEngine(e.target.value);
-    console.log("Engine changed:", e.target.value);
+    setEngine(e.target.value as Engine);
   };
+
   const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
-    console.log("Text changed:", e.target.value);
-  };
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Form submitted");
-    onTranslation({ text, engine: engine as Engine });
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <Form method="post" className="space-y-6">
         <div className="flex justify-end">
           <div className="w-64">
             <label
@@ -46,10 +41,10 @@ export function TranslateForm({ onTranslation }: TranslateFormProps) {
             >
               <option value="yoda">Yoda Speak</option>
               <option value="pirate">Pirate Speak</option>
-              <option value="shakespeare">Shakespearean English</option>
             </Select>
           </div>
         </div>
+
         <div className="space-y-2">
           <label
             htmlFor="text"
@@ -70,13 +65,13 @@ export function TranslateForm({ onTranslation }: TranslateFormProps) {
         <div className="flex justify-center pt-4">
           <Button
             type="submit"
-            // disabled={!text}
+            disabled={!text.trim()}
             className="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:focus:ring-gray-300"
           >
             Translate
           </Button>
         </div>
-      </form>
+      </Form>
     </div>
   );
 }

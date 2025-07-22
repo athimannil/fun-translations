@@ -27,9 +27,7 @@ class YodaTranslationRepo {
         },
       }
     );
-    console.log("=================================");
-    console.log(response);
-    console.log(`${response.status} ${response.statusText}`);
+
     return response.json() as Promise<YodaFunTranslationApiResponse>;
   }
 }

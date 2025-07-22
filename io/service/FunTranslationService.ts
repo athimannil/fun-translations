@@ -4,22 +4,26 @@ import { fromDto } from "../codec/fun-translation";
 import YodaTranslationRepo, {
   type YodaFunTranslationApiResponse,
 } from "../repo/YodaTranslationRepo";
+import PirateTranslationRepo, {
+  type PirateFunTranslationApiResponse,
+} from "../repo/PirateTranslationRepo";
 import cacheService from "./CacheService";
 import { normalizeText } from "domain/normalizeText";
 
-type AnyTranslationApiResponse = YodaFunTranslationApiResponse;
+type AnyTranslationApiResponse =
+  | YodaFunTranslationApiResponse
+  | PirateFunTranslationApiResponse;
 
-// Base interface for translation repositories
 interface TranslationRepo<T> {
   getTranslation(text: string): Promise<T>;
 }
 
-// Map of engine names to repository constructors
 const engineRepoMap: Record<
   Engine,
   () => TranslationRepo<AnyTranslationApiResponse>
 > = {
   yoda: () => new YodaTranslationRepo(),
+  pirate: () => new PirateTranslationRepo(),
 };
 
 interface IFunTranslationService {
@@ -39,18 +43,30 @@ class FunTranslationService implements IFunTranslationService {
     return this.repos[engine]!;
   }
 
-  async getTranslation(text: string, engine: Engine) {
+  async getTranslation(text: string, engine: Engine): Promise<Translation> {
     const normalizedText = normalizeText(text);
-    const translations = cacheService.get<Translation[]>(engine) || [];
-    const cached = translations.find((t) => t.originalText === normalizedText);
 
-    if (cached) {
-      return cached;
+    // Only check cache on client-side
+    if (typeof window !== "undefined") {
+      const translations = cacheService.get<Translation[]>(engine) || [];
+      const cached = translations.find(
+        (t) => t.originalText === normalizedText
+      );
+
+      if (cached) {
+        console.log("Using cached translation");
+        return cached;
+      }
     }
+
+    console.log("Fetching new translation for:", normalizedText);
     const repo = this.getRepo(engine);
     const response = await repo.getTranslation(normalizedText);
     const translation = fromDto(response);
-    cacheService.addToEngineArray<Translation>(engine, translation);
+
+    console.log("Created translation:", translation);
+
+    // Always return the translation, caching will happen on client-side
     return translation;
   }
 }

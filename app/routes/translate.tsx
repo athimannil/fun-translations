@@ -11,8 +11,11 @@ import { Engine } from "domain/types/Engine";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Fun Translations" },
+    {
+      name: "description",
+      content: "Transform your text with different translation engines",
+    },
   ];
 }
 
@@ -22,7 +25,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
   const engine = formData.get("engine") as Engine;
 
   if (!text || !engine) {
-    throw new Error("Missing text or engine");
+    return { success: false, error: "Missing text or engine" };
   }
 
   try {
@@ -32,6 +35,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
     );
     return { success: true, translation };
   } catch (error) {
+    console.error("Translation error:", error);
     return { success: false, error: (error as Error).message };
   }
 };
@@ -40,43 +44,54 @@ const engines: Engine[] = ["yoda", "pirate"];
 
 export default function Translate() {
   const [allTranslations, setAllTranslations] = useState<Translation[]>([]);
-
-  useEffect(() => {
-    const all = engines.flatMap(
-      (engine) => cacheService.get<Translation[]>(engine) || []
-    );
-    setAllTranslations(all);
-  }, []);
-
   const actionData = useActionData<typeof action>();
 
-  const handleTranslationSubmit = async (data: {
-    text: string;
-    engine: Engine;
-  }) => {
-    const { text, engine } = data;
-    const result = await funTranslationService.getTranslation(text, engine);
+  // Function to load translations from localStorage
+  const loadTranslations = () => {
+    if (typeof window === "undefined") return;
 
-    const all = engines.flatMap(
-      (engine) => cacheService.get<Translation[]>(engine) || []
+    console.log("Loading translations from localStorage...");
+    const all = engines.flatMap((engine) => {
+      const engineTranslations = cacheService.get<Translation[]>(engine) || [];
+      console.log(`${engine} translations:`, engineTranslations);
+      return engineTranslations;
+    });
+
+    // Sort by timestamp (newest first)
+    all.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
+
+    console.log("All loaded translations:", all);
     setAllTranslations(all);
   };
+
+  // Load translations on mount
+  useEffect(() => {
+    loadTranslations();
+  }, []);
+
+  // Handle successful translation - save to localStorage and reload
+  useEffect(() => {
+    if (actionData?.success && actionData.translation) {
+      console.log("New translation received:", actionData.translation);
+      // Save to localStorage
+      cacheService.addToEngineArray<Translation>(
+        actionData.translation.engine,
+        actionData.translation
+      );
+      // Reload translations
+      loadTranslations();
+    }
+  }, [actionData]);
 
   const handleDeleteTranslationHistory = (
     engine: Engine,
     originalText: string
   ) => {
-    console.log(engine);
-    console.log(originalText);
-    console.log(allTranslations);
     cacheService.removeFromEngineArray<Translation>(engine, originalText);
-    setAllTranslations((prev) =>
-      prev.filter(
-        (item) =>
-          !(item.engine === engine && item.originalText === originalText)
-      )
-    );
+    loadTranslations(); // Reload after deletion
   };
 
   const handleDeleteAllTranslationsHistory = () => {
@@ -100,11 +115,51 @@ export default function Translate() {
             Transform your text with different translation engines
           </p>
         </div>
-        <TranslateForm onTranslation={handleTranslationSubmit} />
-        {actionData?.translation && (
-          <div className="mt-4 p-4 bg-green-50 rounded-lg">
-            <h3>Translation Result:</h3>
-            <p>{actionData.translation.translatedText}</p>
+
+        <TranslateForm />
+
+        {actionData?.success && actionData.translation && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Translation Result
+              </h2>
+              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium uppercase tracking-wide">
+                {actionData.translation.engine}
+              </span>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">
+                  Original Text
+                </label>
+                <p className="text-gray-900 dark:text-white text-lg leading-relaxed">
+                  {actionData.translation.originalText}
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">
+                  Translated Text
+                </label>
+                <p className="text-gray-900 dark:text-white text-lg font-medium leading-relaxed">
+                  {actionData.translation.translatedText}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Show error result */}
+        {actionData?.success === false && (
+          <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+              Translation Error:
+            </h3>
+            <p className="text-sm text-red-700 dark:text-red-300">
+              {actionData.error}
+            </p>
           </div>
         )}
       </Content>
