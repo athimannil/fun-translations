@@ -28,6 +28,12 @@ class YodaTranslationRepo {
       }
     );
 
+    if (!response.ok) {
+      throw new Error(
+        `API request failed: ${response.status} ${response.statusText}`
+      );
+    }
+
     return response.json() as Promise<YodaFunTranslationApiResponse>;
   }
 }
